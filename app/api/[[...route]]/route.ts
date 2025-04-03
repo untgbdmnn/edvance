@@ -1,4 +1,6 @@
 import { authController } from '@/servers/controllers/authController'
+import { schoolController } from '@/servers/controllers/schoolController'
+import { AuthServices } from '@/servers/services/authServices'
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
 
@@ -19,6 +21,19 @@ app.get('/hello', (c) => {
 })
 
 app.route('/auth', authController)
+
+app.use('*', async (c, next) => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.split(' ')[1];
+
+  const user = token ? await AuthServices.GETTOKEN(token) : null;
+
+  c.set('user', user);
+
+  await next();
+});
+
+app.route('/sekolah', schoolController)
 
 export const GET = handle(app)
 export const POST = handle(app)
