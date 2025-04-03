@@ -27,6 +27,7 @@ model Sekolah {
   Schoolid     Int           @id @default(autoincrement())
   name         String?
   address      String?
+  npsn         String?
   type         SchoolType?   @default(SMA)
   schoolStatus SchoolStatus? @default(NEGERI)
   kurikulum    String?
