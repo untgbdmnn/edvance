@@ -28,9 +28,22 @@ import {
 } from "@/components/ui/sidebar"
 import { useTheme } from "next-themes"
 import { BsSunFill, BsMoonStarsFill } from "react-icons/bs";
+import useAuthStore from "@/lib/authStore"
+import { useRouter } from "next/navigation"
+import Cookies from "js-cookie"
 
 export function NavUser() {
+  const router = useRouter()
+  const logOut = useAuthStore.getState().clearAuth;
+
+  const handleLogout = () => {
+    logOut()
+    Cookies.remove('edvance-auth')
+    router.push('/sign-in')
+  }
+
   const { isMobile } = useSidebar()
+  const dataUser = useAuthStore.getState().user
 
   return (
     <SidebarMenu>
@@ -43,11 +56,11 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{getInitials(dataUser?.name!)}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Admin</span>
-                <span className="truncate text-xs">admin@gmail.com</span>
+                <span className="truncate font-medium">{dataUser?.name}</span>
+                <span className="truncate text-xs">{dataUser?.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -61,12 +74,12 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage   />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage />
+                  <AvatarFallback className="rounded-lg">{getInitials(dataUser?.name!)}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Admin</span>
-                  <span className="truncate text-xs">admin@gmail.com</span>
+                  <span className="truncate font-medium">{dataUser?.name}</span>
+                  <span className="truncate text-xs">{dataUser?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -80,7 +93,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
               <LogOut />
               Log out
             </DropdownMenuItem>
@@ -115,4 +128,14 @@ function ToggleTheme() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+function getInitials(input: string): string {
+  const words = input.split(' ');
+
+  const firstInitial = words[0].charAt(0).toUpperCase();
+
+  const secondInitial = words.length > 1 ? words[1].charAt(0).toUpperCase() : '';
+
+  return `${firstInitial}${secondInitial}`;
 }
