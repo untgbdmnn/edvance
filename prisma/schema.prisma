@@ -18,15 +18,16 @@ model User {
   phone     String?
   address   String?
   schoolId  Int?
-  school    Sekolah?  @relation(fields: [schoolId], references: [Schoolid])
+  school    Sekolah?  @relation(fields: [schoolId], references: [schoolid])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
 model Sekolah {
-  Schoolid     Int           @id @default(autoincrement())
-  name         String?
+  schoolid     Int           @id @default(autoincrement())
+  nama_sekolah String
   address      String?
+  npsn         String
   type         SchoolType?   @default(SMA)
   schoolStatus SchoolStatus? @default(NEGERI)
   kurikulum    String?
