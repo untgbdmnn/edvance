@@ -30,12 +30,12 @@ const useAuthStore = create<AuthState>()(
             user: null,
             setAuth: (token: string, user: User) => set({ token, user: user }),
             clearAuth: () => {
-                customStorage.removeItem('sidara-auth');
+                customStorage.removeItem('edvance-auth');
                 set({ token: null, user: null });
             },
         }),
         {
-            name: 'sidara-auth',
+            name: 'edvance-auth',
             storage: customStorage,
         }
     )

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,74 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  userId    Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  status    Status?   @default(ACTIVE)
+  role      UserRole? @default(STUDENT)
+  token     String?
+  phone     String?
+  address   String?
+  schoolId  Int?
+  school    Sekolah?  @relation(fields: [schoolId], references: [Schoolid])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Sekolah {
+  Schoolid     Int           @id @default(autoincrement())
+  name         String?
+  address      String?
+  type         SchoolType?   @default(SMA)
+  schoolStatus SchoolStatus? @default(NEGERI)
+  kurikulum    String?
+  phone        String?
+  email        String?       @unique
+  website      String?
+  logo         String?
+  status       Status?       @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  User         User[]
+}
+
+enum SchoolType {
+  SMA
+  SMK
+  MA
+}
+
+enum SchoolStatus {
+  NEGERI
+  SWASTA
+}
+
+enum Kurikulum {
+  K13
+  KTSP
+  MERDEKA
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  NEW
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+  FAILED
+  SUCCESS
 }
