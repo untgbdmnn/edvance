@@ -25,9 +25,9 @@ model User {
 
 model Sekolah {
   schoolid     Int           @id @default(autoincrement())
-  name         String?
+  nama_sekolah String
   address      String?
-  npsn         String?
+  npsn         String
   type         SchoolType?   @default(SMA)
   schoolStatus SchoolStatus? @default(NEGERI)
   kurikulum    String?

@@ -56,7 +56,7 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage />
-                <AvatarFallback className="rounded-lg">{getInitials(dataUser?.name!)}</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{dataUser?.name ? getInitials(dataUser?.name!): ""}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{dataUser?.name}</span>
@@ -75,7 +75,7 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage />
-                  <AvatarFallback className="rounded-lg">{getInitials(dataUser?.name!)}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{dataUser?.name ? getInitials(dataUser?.name!): ""}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{dataUser?.name}</span>
@@ -130,12 +130,18 @@ function ToggleTheme() {
   )
 }
 
-function getInitials(input: string): string {
-  const words = input.split(' ');
+function getInitials(input: string | null | undefined): string {
+  if (!input || typeof input !== 'string' || input.trim().length === 0) {
+    return '?';  
+  }
+
+  const words = input.trim().split(/\s+/); 
 
   const firstInitial = words[0].charAt(0).toUpperCase();
 
-  const secondInitial = words.length > 1 ? words[1].charAt(0).toUpperCase() : '';
+  const secondInitial = words.length > 1 
+    ? words[words.length - 1].charAt(0).toUpperCase() // Takes last name's initial
+    : '';
 
   return `${firstInitial}${secondInitial}`;
 }

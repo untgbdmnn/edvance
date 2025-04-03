@@ -7,15 +7,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import MainLayout from '@/layouts/main-layout'
+import useAuthStore from '@/lib/authStore'
 import fetchData from '@/lib/fetchData'
 import { SetTitle } from '@/lib/setHelmet'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function DashboardPage() {
+  const { setAuth } = useAuthStore();
   const [state, setState] = useState({
     loading: false,
-    page_loading: false,
+    page_loading: true,
     school_isNew: false,
   })
 
@@ -27,7 +29,7 @@ export default function DashboardPage() {
     website: '',
     status_sekolah: '',
     type_sekolah: '',
-    npsn: '',
+    npsn: 0,
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,9 +43,11 @@ export default function DashboardPage() {
     setState(prev => ({ ...prev, loading: true }))
     const response = await fetchData.POST('sekolah/create-new', form)
     if (response.success) {
+      setAuth(response.data.token, response.data)
       toast.success("Berhasil", {
         description: response.message
       })
+      window.location.reload()
     } else {
       toast.error("Gagal!", {
         description: response.message
@@ -53,12 +57,12 @@ export default function DashboardPage() {
   }
 
   const checkStatus = async () => {
+    setState(prev => ({ ...prev, page_loading: true, school_isNew: false }))
     const response = await fetchData.GET('sekolah/check-status')
     setState(prev => ({ ...prev, page_loading: false, school_isNew: response.isNew }))
   }
 
   useEffect(() => {
-    setState(prev => ({ ...prev, page_loading: true }))
     checkStatus()
   }, [])
 
@@ -67,7 +71,7 @@ export default function DashboardPage() {
       <MainLayout>
         <SetTitle pageTitle='Dashboard' />
         <div className='w-full h-full flex items-center justify-center'>
-          <Spinner />
+          <Spinner label='Memuat...'/>
         </div>
       </MainLayout>
     )

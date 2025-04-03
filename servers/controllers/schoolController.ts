@@ -11,14 +11,7 @@ schoolController.get('/check-status', async (c) => {
     const user = c.get("user")
 
     if (user?.schoolId) {
-        const checkSekolah = user.schoolId !== null ? await prismaClient.sekolah.findFirst({
-            where: { schoolid: user.schoolId }
-        }) : null;
-        if (!checkSekolah) {
-            return c.json({ isNew: false })
-        } else {
-            return c.json<{ isNew: boolean }>({ isNew: true })
-        }
+        return c.json({ isNew: false })
     } else {
         return c.json<{ isNew: boolean }>({ isNew: true })
     }
