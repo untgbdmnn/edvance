@@ -1,5 +1,6 @@
 import { authController } from '@/servers/controllers/authController'
 import { schoolController } from '@/servers/controllers/schoolController'
+import { studentController } from '@/servers/controllers/studentController'
 import { AuthServices } from '@/servers/services/authServices'
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
@@ -34,6 +35,8 @@ app.use('*', async (c, next) => {
 });
 
 app.route('/sekolah', schoolController)
+app.route('/student', studentController)
 
 export const GET = handle(app)
+export const PATCH = handle(app)
 export const POST = handle(app)

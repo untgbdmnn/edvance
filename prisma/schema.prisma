@@ -39,6 +39,31 @@ model Sekolah {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   User         User[]
+  Student      Student[]
+}
+
+model Student {
+  studentId      Int           @id @default(autoincrement())
+  siswa_nama     String
+  siswa_nis      String
+  siswa_nisn     String
+  jenis_kelamin  JenisKelamin?
+  siswa_slug     String
+  siswa_alamat   String?
+  siswa_telp     String?
+  siswa_email    String?       @unique
+  siswa_password String
+  siswa_status   Status        @default(NEW)
+  school         Sekolah?      @relation(fields: [schoolId], references: [schoolid])
+  schoolId       Int?
+  kelasId        Int?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
 }
 
 enum SchoolType {
