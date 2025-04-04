@@ -43,8 +43,7 @@ export function NavMain({
             <SidebarMenu>
                 {items?.map((item) => {
                     const menuActive = pathname === item.url || (item.url && pathname.startsWith(item.url)) || false;
-
-                    const isActive = item.items?.some(child => child.url === pathname) || false;
+                    const isActive = item.items?.some(child => child.url === pathname) || item.items?.some(child => child.url && pathname.startsWith(child.url)) || false;
                     return (
                         <Collapsible
                             key={item.title}
