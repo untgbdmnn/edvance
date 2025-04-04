@@ -16,7 +16,7 @@ export default function ActionButton({ children, side = "bottom", align = "cente
         <Popover>
             <PopoverTrigger><TbDotsVertical className='size-5 cursor-pointer'/></PopoverTrigger>
             <PopoverContent side={side} align={align} className={cn('w-fit p-0 px-3 py-1', className)} sideOffset={offset}>
-                <div className='flex flex-col items-center justify-center space-y-1 text-sm'>{children}</div>
+                <div className='flex flex-col items-center justify-center space-y-1 text-sm text-center w-full'>{children}</div>
             </PopoverContent>
         </Popover>
 

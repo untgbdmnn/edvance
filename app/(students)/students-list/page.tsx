@@ -13,11 +13,12 @@ import { SetTitle } from '@/lib/setHelmet'
 import { cn } from '@/lib/utils'
 import { Student } from '@prisma/client'
 import { PlusCircleIcon, RefreshCcw, SearchIcon } from 'lucide-react'
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
 
 export default function StudentList() {
+    const router = useRouter()
     const [data, setData] = React.useState<Student[] | null>(null)
     const [state, setState] = React.useState({
         search: '',
@@ -81,7 +82,7 @@ export default function StudentList() {
                         <div className='relative flex w-full items-center justify-start'>
                             <Input className='pl-9 w-full' placeholder='Cari nama siswa...' onChange={(e) => setState(prev => ({ ...prev, search: e.target.value }))} onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
-                                    // do something
+                                    loadSiswa()
                                 }
                             }} />
                             <SearchIcon className='absolute left-1.5' />
@@ -112,7 +113,7 @@ export default function StudentList() {
                                 {state.loading && (
                                     <TableRow>
                                         <TableCell colSpan={12}>
-                                            <Spinner color='auto' className='my-5 py-2' />
+                                            <Spinner className='my-5 py-2' />
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -133,11 +134,12 @@ export default function StudentList() {
                                             <TableCell>{student.siswa_nisn}</TableCell>
                                             <TableCell>-</TableCell>
                                             <TableCell align='center'>
-                                                <ActionButton side='top' offset={3}>
+                                                <ActionButton side='top' offset={3} align='end'>
                                                     {student.siswa_status !== 'ACTIVE' && (
                                                         <span className='cursor-pointer' onClick={() => changeStatus(student.studentId)}>Aktifkan</span>
                                                     )}
-                                                    <span className='cursor-pointer text-destructive'>Hapus</span>
+                                                    <span className='cursor-pointer text-center' onClick={() => router.push('students-list/edit-student/' + student.siswa_slug)}>Edit</span>
+                                                    <span className='cursor-pointer text-destructive text-center'>Hapus</span>
                                                 </ActionButton>
                                             </TableCell>
                                         </TableRow>

@@ -2,6 +2,7 @@ import { prismaClient } from "@/lib/db";
 import { EditStudent, StudentNew } from "../models/studentModel";
 import { convertSlug } from "@/resources/helpers/convertSlug";
 import { hashPassword } from "@/resources/helpers/hasPassword";
+import { JenisKelamin, Status } from "@prisma/client";
 
 interface getAllDataReq {
     filter_nama?: string, page?: number, paginate?: number
@@ -68,7 +69,7 @@ export class StudentServices {
         const [siswa, totalCount] = await Promise.all([
             prismaClient.student.findMany({
                 where: whereClause,
-                orderBy: { createdAt: 'desc' },
+                orderBy: { siswa_nama: 'asc' },
                 skip,
                 take: perPage
             }),
@@ -89,6 +90,29 @@ export class StudentServices {
     }
 
     static async editData(request: EditStudent, data?: any) {
+        const updateData = await prismaClient.student.update({
+            where: { studentId: request.studentId, schoolId: data?.schoolId },
+            data: {
+                siswa_nama: request.siswa_nama,
+                siswa_nis: request.siswa_nis,
+                siswa_nisn: request.siswa_nisn,
+                siswa_email: request.siswa_email,
+                siswa_telp: request.siswa_telp.toString(),
+                jenis_kelamin: request.jenis_kelamin as JenisKelamin,
+                siswa_alamat: request.siswa_alamat,
+                siswa_status: request.siswa_status as Status
+            }
+        })
+
+        if (updateData && request.siswa_nama) {
+            await prismaClient.student.update({
+                where: { studentId: request.studentId, schoolId: data?.schoolId },
+                data: {
+                    siswa_slug: convertSlug(request.siswa_nama)
+                }
+            })
+        }
+
         return {
             success: true,
             message: "Berhasil mengubah data siswa!"

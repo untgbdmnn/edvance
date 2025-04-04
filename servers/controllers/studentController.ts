@@ -1,6 +1,6 @@
 import parseRequest from "@/resources/helpers/parseRequest";
 import { Hono } from "hono";
-import { User } from "@prisma/client";
+import { Status, User } from "@prisma/client";
 import { StudentServices } from "../services/studentServices";
 import { EditStudent, StudentNew } from "../models/studentModel";
 import { prismaClient } from "@/lib/db";
@@ -25,8 +25,21 @@ studentController.patch('/change-status', async (c) => {
     const request = await parseRequest<{ studentId: number }>(c)
 
     await prismaClient.student.update({
-        where: {studentId: request.studentId},
-        data: {siswa_status: "ACTIVE"}
+        where: { studentId: request.studentId },
+        data: { siswa_status: "ACTIVE" }
+    })
+    return c.json({
+        success: true,
+        message: "Berhasil mengubah status siswa!"
+    })
+})
+
+studentController.patch('/nonactive-student', async (c) => {
+    const request = await parseRequest<{ studentId: number, new_status: string }>(c)
+
+    await prismaClient.student.update({
+        where: { studentId: request.studentId },
+        data: { siswa_status: request.new_status as Status }
     })
     return c.json({
         success: true,
@@ -39,4 +52,16 @@ studentController.patch('/edit-data', async (c) => {
     const request = await parseRequest<EditStudent>(c)
     const response = await StudentServices.editData(request, user)
     return c.json(response)
+})
+
+studentController.post('/load-detail', async (c) => {
+    const request = await parseRequest<{ slug: string }>(c)
+
+    const data = await prismaClient.student.findFirst({
+        where: { siswa_slug: request.slug }
+    })
+    return c.json({
+        success: true,
+        data: data,
+    })
 })
