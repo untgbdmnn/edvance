@@ -65,3 +65,23 @@ studentController.post('/load-detail', async (c) => {
         data: data,
     })
 })
+
+studentController.delete('/delete/:studentId', async (c) => {
+    const id = c.req.param('studentId');
+
+    const deleteData = await prismaClient.student.delete({
+        where: { studentId: parseInt(id) }
+    })
+
+    if (deleteData) {
+        return c.json({
+            success: true,
+            message: "Berhasil menghapus data siswa!"
+        })
+    } else {
+        return c.json({
+            success: false,
+            message: "Gagal menghapus data siswa!"
+        })
+    }
+})

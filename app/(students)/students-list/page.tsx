@@ -99,7 +99,25 @@ export default function StudentList() {
         })
 
         if (confirmed) {
-            alert("Berhasil!")
+            const response = await fetchData.DELETE('student/delete/' + studentId)
+            if (response.success) {
+                showAlert({
+                    title: "Berhasil!",
+                    message: response.message,
+                    typealert: "success",
+                    autoClose: true,
+                    duration: 1000
+                })
+                setState(prev => ({ ...prev, loading: true }))
+            } else {
+                showAlert({
+                    title: "Gagal!",
+                    message: response.message,
+                    typealert: "error",
+                    autoClose: true,
+                    duration: 1000
+                })
+            }
         }
     }
 
@@ -108,6 +126,8 @@ export default function StudentList() {
             loadSiswa()
         }
     }, [state.loading])
+
+    console.log(data?.length)
 
     return (
         <MainLayout showBreadcrumb pageTitle='Daftar Siswa' parentPageTitle='Siswa'>
@@ -133,7 +153,7 @@ export default function StudentList() {
                 </div>
 
                 <div className='p-3'>
-                    {!state.loading && data === null ? (
+                    {!state.loading && (data == null || data?.length == 0) ? (
                         <EmptyData />
                     ) : (
                         <Table>
