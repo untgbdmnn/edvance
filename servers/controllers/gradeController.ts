@@ -7,6 +7,21 @@ import { prismaClient } from "@/lib/db";
 
 export const gradeController = new Hono<{ Variables: { user: User } }>();
 
+gradeController.get('/search', async (c) => {
+    const user = c.get('user');
+    const data = await prismaClient.grade.findMany({
+        where: {
+            schoolId: user.schoolId,
+        },
+        orderBy: {name: 'asc'},
+    })
+    return c.json({
+        success: true,
+        message: "Berhasil mendapatkan data!",
+        data: data,
+    })
+})
+
 gradeController.post('/add', async (c) => {
     const user = c.get('user');
     const request = await parseRequest<GradeAdd>(c)

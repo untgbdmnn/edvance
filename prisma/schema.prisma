@@ -8,39 +8,44 @@ datasource db {
 }
 
 model User {
-  userId    Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  status    Status?   @default(ACTIVE)
-  role      UserRole? @default(STUDENT)
-  token     String?
-  phone     String?
-  address   String?
-  schoolId  Int?
-  school    Sekolah?  @relation(fields: [schoolId], references: [schoolid])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  userId         Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  password       String
+  status         Status?          @default(ACTIVE)
+  role           UserRole?        @default(STUDENT)
+  token          String?
+  phone          String?
+  address        String?
+  schoolId       Int?
+  school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  HistorySubject HistorySubject[]
 }
 
 model Sekolah {
-  schoolid     Int           @id @default(autoincrement())
-  nama_sekolah String
-  address      String?
-  npsn         String
-  type         SchoolType?   @default(SMA)
-  schoolStatus SchoolStatus? @default(NEGERI)
-  kurikulum    String?
-  phone        String?
-  email        String?       @unique
-  website      String?
-  logo         String?
-  status       Status?       @default(ACTIVE)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  User         User[]
-  Student      Student[]
-  Grade        Grade[]
+  schoolid       Int              @id @default(autoincrement())
+  nama_sekolah   String
+  address        String?
+  npsn           String
+  type           SchoolType?      @default(SMA)
+  schoolStatus   SchoolStatus?    @default(NEGERI)
+  kurikulum      String?
+  phone          String?
+  email          String?          @unique
+  website        String?
+  logo           String?
+  status         Status?          @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  User           User[]
+  Student        Student[]
+  Grade          Grade[]
+  Subject        Subject[]
+  Teacher        Teacher[]
+  Schedule       Schedule[]
+  HistorySubject HistorySubject[]
 }
 
 model Student {
@@ -64,16 +69,85 @@ model Student {
 }
 
 model Grade {
-  gradeId   Int       @id @default(autoincrement())
+  gradeId   Int        @id @default(autoincrement())
   name      String
   level     String
   guruId    Int?
   majorId   Int?
   schoolId  Int?
-  school    Sekolah?  @relation(fields: [schoolId], references: [schoolid])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  school    Sekolah?   @relation(fields: [schoolId], references: [schoolid])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   Student   Student[]
+  Schedule  Schedule[]
+}
+
+model Subject {
+  subjectId      Int              @id @default(autoincrement())
+  subjectName    String
+  subjectCode    String?
+  teacherId      Int?
+  teacher        Teacher?         @relation(fields: [teacherId], references: [teacherId])
+  schoolId       Int?
+  school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  Schedule       Schedule[]
+  HistorySubject HistorySubject[]
+}
+
+model HistorySubject {
+  historyId      Int              @id @default(autoincrement())
+  historyOldId   Int?
+  history        HistorySubject?  @relation("SelfRelation", fields: [historyOldId], references: [historyId])
+  HistorySubject HistorySubject[] @relation("SelfRelation")
+  subjectName    String?
+  subjectCode    String?
+  historyStatus  HistoryStatus?   @default(CREATED)
+  historyBy      String?
+  userId         Int?
+  user           User?            @relation(fields: [userId], references: [userId])
+  subjectId      Int?
+  subject        Subject?         @relation(fields: [subjectId], references: [subjectId])
+  schoolId       Int?
+  school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Teacher {
+  teacherId Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  phone     String?
+  address   String?
+  schoolId  Int?
+  school    Sekolah?   @relation(fields: [schoolId], references: [schoolid])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Subject   Subject[]
+  Schedule  Schedule[]
+}
+
+model Schedule {
+  scheduleId  Int      @id @default(autoincrement())
+  subjectId   Int?
+  day         String?
+  startTime   String?
+  endTime     String?
+  subject     Subject? @relation(fields: [subjectId], references: [subjectId])
+  teacherId   Int?
+  teacher     Teacher? @relation(fields: [teacherId], references: [teacherId])
+  gradeId     Int?
+  grade       Grade?   @relation(fields: [gradeId], references: [gradeId])
+  schoolId    Int?
+  school      Sekolah? @relation(fields: [schoolId], references: [schoolid])
+  isRecurring Boolean? @default(true)
+  isActive    Boolean? @default(true)
+  room        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum JenisKelamin {
@@ -102,6 +176,14 @@ enum UserRole {
   ADMIN
   TEACHER
   STUDENT
+}
+
+enum HistoryStatus {
+  CREATED
+  UPDATED
+  DELETED
+  RESTORED
+  REVERTED
 }
 
 enum Status {
