@@ -3,6 +3,7 @@
 import ActionButton from '@/components/action-button'
 import AppHeader from '@/components/app-header'
 import EmptyData from '@/components/empty-data'
+import Paginate from '@/components/paginate'
 import Spinner from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,7 @@ import MainLayout from '@/layouts/main-layout'
 import fetchData from '@/lib/fetchData'
 import { SetTitle } from '@/lib/setHelmet'
 import { cn } from '@/lib/utils'
+import { useAlert } from '@/resources/hooks/useAlert'
 import { Student } from '@prisma/client'
 import { PlusCircleIcon, RefreshCcw, SearchIcon } from 'lucide-react'
 import { redirect, useRouter } from 'next/navigation'
@@ -18,6 +20,7 @@ import * as React from 'react'
 import { toast } from 'sonner'
 
 export default function StudentList() {
+    const { showAlert } = useAlert()
     const router = useRouter()
     const [data, setData] = React.useState<Student[] | null>(null)
     const [state, setState] = React.useState({
@@ -51,6 +54,16 @@ export default function StudentList() {
         }
     }
 
+    const refreshState = () => {
+        setState(prev => ({
+            ...prev,
+            search: '',
+            loading: true,
+            currentPage: 0,
+        }))
+        setData(null)
+    }
+
     const changeStatus = async (studentId: number) => {
         const response = await fetchData.PATCH('student/change-status', { studentId: studentId })
         if (response.success) {
@@ -62,6 +75,31 @@ export default function StudentList() {
             toast.error("Gagal!", {
                 description: response.message,
             })
+        }
+    }
+
+    const handlePageChange = (data: any) => {
+        setState(prevState => ({
+            ...prevState,
+            loading: true,
+            currentPage: data.selected
+        }))
+        setData(null)
+    };
+
+    const wantDelete = async (studentId: number) => {
+        const confirmed = await showAlert({
+            title: "Peringatan!",
+            message: "Apakah Anda yakin ingin menghapus item ini?",
+            typealert: "warning",
+            showButton: true,
+            autoClose: false,
+            confirmText: "Ya, Hapus",
+            closeText: "Batal"
+        })
+
+        if (confirmed) {
+            alert("Berhasil!")
         }
     }
 
@@ -80,14 +118,14 @@ export default function StudentList() {
                 <div className='p-3 flex flex-row items-center justify-between w-full'>
                     <div className='flex flex-row items-center gap-4 w-2/5'>
                         <div className='relative flex w-full items-center justify-start'>
-                            <Input className='pl-9 w-full' placeholder='Cari nama siswa...' onChange={(e) => setState(prev => ({ ...prev, search: e.target.value }))} onKeyDown={(e) => {
+                            <Input className='pl-9 w-full' placeholder='Cari nama siswa...' onChange={(e) => setState(prev => ({ ...prev, search: e.target.value }))} value={state.search} onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     loadSiswa()
                                 }
                             }} />
                             <SearchIcon className='absolute left-1.5' />
                         </div>
-                        <Button><RefreshCcw /></Button>
+                        <Button className='cursor-pointer' onClick={refreshState}><RefreshCcw /></Button>
                     </div>
                     <div className=''>
                         <Button className='cursor-pointer' onClick={() => redirect('students-list/new-student')}><PlusCircleIcon />Tambah</Button>
@@ -139,7 +177,7 @@ export default function StudentList() {
                                                         <span className='cursor-pointer' onClick={() => changeStatus(student.studentId)}>Aktifkan</span>
                                                     )}
                                                     <span className='cursor-pointer text-center' onClick={() => router.push('students-list/edit-student/' + student.siswa_slug)}>Edit</span>
-                                                    <span className='cursor-pointer text-destructive text-center'>Hapus</span>
+                                                    <span className='cursor-pointer text-destructive text-center' onClick={() => wantDelete(student.studentId)}>Hapus</span>
                                                 </ActionButton>
                                             </TableCell>
                                         </TableRow>
@@ -148,6 +186,9 @@ export default function StudentList() {
                             </TableBody>
                         </Table>
                     )}
+                    <div className='mt-5'>
+                        <Paginate pageCount={state.lastPage} onPageChange={handlePageChange} onPage={data ? data.length : 0} totalData={state.totalData} />
+                    </div>
                 </div>
             </div>
         </MainLayout>
