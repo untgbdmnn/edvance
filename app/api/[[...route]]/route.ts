@@ -1,4 +1,5 @@
 import { authController } from '@/servers/controllers/authController'
+import { gradeController } from '@/servers/controllers/gradeController'
 import { schoolController } from '@/servers/controllers/schoolController'
 import { studentController } from '@/servers/controllers/studentController'
 import { AuthServices } from '@/servers/services/authServices'
@@ -36,6 +37,7 @@ app.use('*', async (c, next) => {
 
 app.route('/sekolah', schoolController)
 app.route('/student', studentController)
+app.route('/grade', gradeController)
 
 export const GET = handle(app)
 export const PATCH = handle(app)

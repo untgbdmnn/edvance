@@ -40,6 +40,7 @@ model Sekolah {
   updatedAt    DateTime      @updatedAt
   User         User[]
   Student      Student[]
+  Grade        Grade[]
 }
 
 model Student {
@@ -56,9 +57,23 @@ model Student {
   siswa_status   Status        @default(NEW)
   school         Sekolah?      @relation(fields: [schoolId], references: [schoolid])
   schoolId       Int?
-  kelasId        Int?
+  gradeId        Int?
+  grade          Grade?        @relation(fields: [gradeId], references: [gradeId])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+}
+
+model Grade {
+  gradeId   Int       @id @default(autoincrement())
+  name      String
+  level     String
+  guruId    Int?
+  majorId   Int?
+  schoolId  Int?
+  school    Sekolah?  @relation(fields: [schoolId], references: [schoolid])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Student   Student[]
 }
 
 enum JenisKelamin {

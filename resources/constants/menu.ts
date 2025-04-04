@@ -18,7 +18,7 @@ export const MenuMain = [
             },
             {
                 title: "Kelas",
-                url: "/class",
+                url: "/grade-list",
             },
             {
                 title: "Mata Pelajaran",
