@@ -1,8 +1,9 @@
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { cn } from '@/lib/utils'
-import { TbDotsVertical } from 'react-icons/tb'
+import { BiMenu } from "react-icons/bi";
+import { Button } from './ui/button'
 
-interface ActionButtonProps {
+interface MoreButtonAction {
     children: React.ReactNode
     side?: "top" | "right" | "bottom" | "left"
     align?: "start" | "center" | "end"
@@ -10,10 +11,12 @@ interface ActionButtonProps {
     offset?: number
 }
 
-export default function ActionButton({ children, side = "bottom", align = "center", className, offset = 10 }: ActionButtonProps) {
+export default function MoreButtonAction({ children, side = "bottom", align = "center", className, offset = 10 }: MoreButtonAction) {
     return (
         <Popover>
-            <PopoverTrigger><TbDotsVertical className='size-5 cursor-pointer'/></PopoverTrigger>
+            <PopoverTrigger>
+                <Button variant="outline" className='cursor-pointer'><BiMenu /></Button>
+            </PopoverTrigger>
             <PopoverContent side={side} align={align} className={cn('w-fit p-0 px-3 py-1', className)} sideOffset={offset}>
                 <div className='flex flex-col items-center justify-center space-y-1 text-sm text-center w-full'>{children}</div>
             </PopoverContent>

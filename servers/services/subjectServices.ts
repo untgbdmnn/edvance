@@ -1,6 +1,6 @@
 import { prismaClient } from "@/lib/db";
 import { AddSubject, UpdateSubject } from "../models/subjectModel";
-import { User } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 
 export class SubjectServices {
     static async AddSubject(request: AddSubject, data?: User) {
@@ -15,7 +15,7 @@ export class SubjectServices {
         });
 
         if (subject) {
-            await prismaClient.historySubject.create({
+            const history = await prismaClient.historySubject.create({
                 data: {
                     subjectId: subject.subjectId,
                     subjectName: subject.subjectName,
@@ -27,18 +27,25 @@ export class SubjectServices {
                     historyStatus: "CREATED"
                 }
             })
+            if (history) {
+                return {
+                    success: true,
+                    message: 'Subject added successfully',
+                    data: subject
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'Failed to added data subject!',
+                    data: subject
+                };
+            }
         } else {
             return {
                 success: false,
                 message: "Failed to added data subject!"
             }
         }
-
-        return {
-            success: true,
-            message: 'Subject added successfully',
-            data: subject
-        };
     }
 
     static async getAllData(request: { filter_nama?: string, page?: number, paginate?: number }, data?: any) {
@@ -46,7 +53,7 @@ export class SubjectServices {
         const perPage = request.paginate || 2;
         const skip = (page - 1) * perPage;
 
-        let whereClause: any = { schoolId: data?.schoolId };
+        let whereClause: any = { schoolId: data?.schoolId, status: "ACTIVE" };
 
         if (request.filter_nama && request.filter_nama.trim() !== '') {
             whereClause.subjectName = {
@@ -77,6 +84,68 @@ export class SubjectServices {
             message: "Berhasil mengambil data Mata pelajaran!"
         }
     }
+
+    // static async getAllData(
+    //     request: { filter_nama?: string; page?: number; paginate?: number },
+    //     data?: { schoolId?: number }
+    // ) {
+    //     // Set default values
+    //     const page = Number(request.page) || 1;
+    //     const perPage = Number(request.paginate) || 10; // Default lebih realistis dari 2
+    //     const skip = (page - 1) * perPage;
+
+    //     // Build where clause
+    //     const whereClause: Prisma.SubjectWhereInput = {
+    //         schoolId: data?.schoolId,
+    //         status: "ACTIVE" // Menghapus tanda tanya karena status sepertinya required
+    //     };
+
+    //     // Add name filter if provided
+    //     if (request.filter_nama?.trim()) {
+    //         whereClause.subjectName = {
+    //             contains: request.filter_nama.trim(),
+    //             mode: 'insensitive'
+    //         };
+    //     }
+
+    //     try {
+    //         const [subjects, totalCount] = await Promise.all([
+    //             prismaClient.subject.findMany({
+    //                 where: whereClause,
+    //                 orderBy: { subjectName: 'asc' },
+    //                 skip,
+    //                 take: perPage,
+    //                 include: {
+    //                     teacher: true // Contoh relasi yang mungkin ingin di-include
+    //                 }
+    //             }),
+    //             prismaClient.subject.count({ where: whereClause })
+    //         ]);
+
+    //         const lastPage = Math.ceil(totalCount / perPage);
+
+    //         return {
+    //             success: true,
+    //             data: {
+    //                 data: subjects,
+    //                 total: totalCount,
+    //                 currentPage: page,
+    //                 perPage,
+    //                 lastPage,
+    //                 hasNextPage: page < lastPage,
+    //                 hasPreviousPage: page > 1
+    //             },
+    //             message: "Berhasil mengambil data mata pelajaran"
+    //         };
+    //     } catch (error) {
+    //         console.error("Error in getAllData:", error);
+    //         return {
+    //             success: false,
+    //             message: "Gagal mengambil data mata pelajaran",
+    //             error: error instanceof Error ? error.message : "Unknown error"
+    //         };
+    //     }
+    // }
 
     static async updateData(request: UpdateSubject, data?: any) {
         const subject = await prismaClient.subject.update({
@@ -198,7 +267,7 @@ export class SubjectServices {
             await prismaClient.historySubject.create({
                 data: {
                     historyOldId: latest?.historyId,
-                    subjectId: history?.subjectId,
+                    subjectId: history?.subjectId!,
                     subjectName: history?.subjectName,
                     subjectCode: history?.subjectCode,
                     teacherId: history?.teacherId,
@@ -213,6 +282,34 @@ export class SubjectServices {
                 success: true,
                 message: "Data berhasil dikembalikan!"
             }
+        }
+    }
+
+    static async getTrash(request: { page?: number, paginate?: number }, data?: any) {
+        const page = request.page || 1;
+        const perPage = request.paginate || 2;
+        const skip = (page - 1) * perPage;
+
+        const [dataTrash, totalCount] = await Promise.all([
+            prismaClient.subject.findMany({
+                where: { schoolId: data?.schoolId, status: "DELETED" },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: perPage
+            }),
+            prismaClient.subject.count({ where: { status: "DELETED" } })
+        ]);
+
+        return {
+            success: true,
+            message: "Berhasil mendapatkan data history!",
+            data: {
+                data: dataTrash,
+                total: totalCount,
+                page,
+                perPage,
+                lastPage: Math.ceil(totalCount / perPage)
+            },
         }
     }
 }

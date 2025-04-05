@@ -17,14 +17,19 @@ import Spinner from '@/components/spinner'
 import ActionButton from '@/components/action-button'
 import Paginate from '@/components/paginate'
 import RiwayatSubject from './historySubject'
+import { useAlert } from '@/resources/hooks/useAlert'
+import MoreButtonAction from '@/components/more-option'
+import TrashSubject from './trashSubject'
 
 export default function SubjectList() {
+    const { showAlert } = useAlert()
     const [data, setData] = React.useState<Subject[] | null>([])
     const [state, setState] = React.useState({
         search: '',
         modalAdd: false,
         modalEdit: false,
         modalHistory: false,
+        modalTrash: false,
         loading: true,
         currentPage: 0,
         perPage: 0,
@@ -39,6 +44,7 @@ export default function SubjectList() {
             modalAdd: false,
             modalEdit: false,
             modalHistory: false,
+            modalTrash: false,
         }))
     }
 
@@ -85,6 +91,38 @@ export default function SubjectList() {
         }))
     }
 
+    const handleDelete = async (id: number) => {
+        const confirmed = await showAlert({
+            title: "Peringatan!",
+            message: `Data ini akan dihapus, apakah anda yakin?`,
+            typealert: "warning",
+            showButton: true,
+            confirmText: "Hapus",
+            closeText: "Batal"
+        })
+        if (confirmed) {
+            const response = await fetchData.DELETE('subject/delete/' + id)
+            if (response.success) {
+                showAlert({
+                    title: "Berhasil!",
+                    message: response.message,
+                    typealert: "success",
+                    autoClose: true,
+                    duration: 1000
+                })
+                resetState()
+            } else {
+                showAlert({
+                    title: "Gagal!",
+                    message: response.message,
+                    typealert: "error",
+                    autoClose: true,
+                    duration: 1200
+                })
+            }
+        }
+    }
+
     return (
         <MainLayout showBreadcrumb pageTitle='Daftar Mata Pelajaran' parentPageTitle='Master Data'>
             <SetTitle pageTitle='Mata Pelajaran' />
@@ -93,6 +131,7 @@ export default function SubjectList() {
             <AddSubject isOpen={state.modalAdd} onOpenChange={handleCloseModal} reload={resetState} />
             <EditSubject isOpen={state.modalEdit} onOpenChange={handleCloseModal} reload={resetState} subjectId={state.subjectId} />
             <RiwayatSubject isOpen={state.modalHistory} onOpenChange={handleCloseModal} reload={resetState} subjectId={state.subjectId} />
+            <TrashSubject isOpen={state.modalTrash} onOpenChange={handleCloseModal} reload={resetState}/>
 
             <div className='container'>
                 <div className='p-3 w-full'>
@@ -108,8 +147,13 @@ export default function SubjectList() {
                             </div>
                             <Button className='cursor-pointer' onClick={resetState}><RefreshCcwDot /></Button>
                         </div>
-                        <div>
+                        <div className='flex items-center gap-3'>
                             <Button className='cursor-pointer' onClick={() => setState(prev => ({ ...prev, modalAdd: true }))}><PlusCircleIcon />Tambah</Button>
+                            <MoreButtonAction align='end'>
+                                <span className='cursor-pointer' onClick={() => setState(prev => ({
+                                    ...prev, modalTrash: true
+                                }))}>Trash Subject</span>
+                            </MoreButtonAction>
                         </div>
                     </div>
                     <div className='mt-5'>
@@ -153,7 +197,7 @@ export default function SubjectList() {
                                                             <span className='cursor-pointer' onClick={() => setState({
                                                                 ...state, modalHistory: true, subjectId: item.subjectId
                                                             })}>Riwayat</span>
-                                                            <span className='cursor-pointer text-destructive'>Hapus</span>
+                                                            <span className='cursor-pointer text-destructive' onClick={() => handleDelete(item.subjectId)}>Hapus</span>
                                                         </ActionButton>
                                                     </TableCell>
                                                 </TableRow>

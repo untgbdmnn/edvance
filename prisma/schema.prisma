@@ -13,7 +13,7 @@ model User {
   email          String           @unique
   password       String
   status         Status?          @default(ACTIVE)
-  role           UserRole?        @default(ADMIN  )
+  role           UserRole?        @default(ADMIN)
   token          String?
   phone          String?
   address        String?
@@ -86,6 +86,7 @@ model Subject {
   subjectId      Int              @id @default(autoincrement())
   subjectName    String
   subjectCode    String?
+  status         Status           @default(ACTIVE)
   teacherId      Int?
   teacher        Teacher?         @relation(fields: [teacherId], references: [teacherId])
   schoolId       Int?
@@ -107,10 +108,10 @@ model HistorySubject {
   historyBy      String?
   userId         Int?
   user           User?            @relation(fields: [userId], references: [userId])
-  subjectId      Int?
+  subjectId      Int
   teacherId      Int?
   teacher        Teacher?         @relation(fields: [teacherId], references: [teacherId])
-  subject        Subject?         @relation(fields: [subjectId], references: [subjectId])
+  subject        Subject          @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade, onUpdate: Cascade)
   schoolId       Int?
   school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
   createdAt      DateTime         @default(now())
@@ -191,6 +192,7 @@ enum HistoryStatus {
 
 enum Status {
   ACTIVE
+  DELETED
   INACTIVE
   SUSPENDED
   NEW

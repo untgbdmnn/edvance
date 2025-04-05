@@ -50,7 +50,6 @@ export default function RiwayatSubject({ isOpen, onOpenChange, reload, ...props 
         }
         setState(prev => ({ ...prev, loading: false }))
     }
-
     React.useEffect(() => {
         if (isOpen) {
             loadHistory()

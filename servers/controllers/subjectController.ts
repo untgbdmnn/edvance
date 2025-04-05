@@ -24,7 +24,7 @@ subjectController.post('/edit-subject', async (c) => {
 subjectController.post('/list', async (c) => {
     const user = c.get('user');
     const request = await parseRequest<{ filter_nama?: string, page?: number, paginate?: number }>(c)
-    const response = await SubjectServices.getAllData(request, user)
+    const response = await SubjectServices.getAllData(request, { schoolId: user.schoolId ?? undefined })
     return c.json(response)
 })
 
@@ -59,5 +59,92 @@ subjectController.post('/revert-history', async (c) => {
     const user = c.get('user');
     const request = await parseRequest<{ historyId: number, subjectId: number }>(c)
     const response = await SubjectServices.revertHistory(request, user)
+    return c.json(response)
+})
+
+subjectController.delete('/delete/:subjectId', async (c) => {
+    const user = c.get('user');
+    const subjectId = c.req.param('subjectId')
+
+    const deleteData = await prismaClient.subject.update({
+        where: { schoolId: user.schoolId, subjectId: parseInt(subjectId) },
+        data: { status: "DELETED" }
+    })
+
+    if (deleteData) {
+        return c.json({
+            success: true,
+            message: "Berhasil menghapus data mata pelajaran!"
+        })
+    } else {
+        return c.json({
+            success: false,
+            message: "Gagal menghapus data mata pelajaran!"
+        })
+    }
+})
+
+subjectController.patch('/pulihkan', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ subjectId: number | [] }>(c)
+
+    let reverted
+    if (Array.isArray(request.subjectId)) {
+        reverted = await prismaClient.subject.updateMany({
+            where: { schoolId: user.schoolId, subjectId: { in: request.subjectId } },
+            data: { status: "ACTIVE" }
+        })
+    } else {
+        reverted = await prismaClient.subject.update({
+            where: { schoolId: user.schoolId, subjectId: request.subjectId },
+            data: { status: "ACTIVE" }
+        })
+    }
+
+    if (reverted) {
+        return c.json({
+            success: true,
+            message: "Berhasil memulihkan data mata pelajaran!"
+        })
+    } else {
+        return c.json({
+            success: false,
+            message: "Gagal memulihkan data mata pelajaran!"
+        })
+    }
+})
+
+subjectController.post('/delete-permanent', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ subjectId: number | [] }>(c)
+
+    let deleted
+    if (Array.isArray(request.subjectId)) {
+        deleted = await prismaClient.subject.deleteMany({
+            where: { schoolId: user.schoolId, subjectId: { in: request.subjectId } },
+        })
+    } else {
+        deleted = await prismaClient.subject.delete({
+            where: { schoolId: user.schoolId, subjectId: request.subjectId },
+        })
+    }
+
+    if (deleted) {
+        return c.json({
+            success: true,
+            message: "Berhasil menghapus data mata pelajaran secara permanen!"
+        })
+    } else {
+        return c.json({
+            success: false,
+            message: "Gagal menghapus data mata pelajaran secara permanen!"
+        })
+    }
+})
+
+subjectController.post('/get-trash', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ page?: number, paginate?: number }>(c)
+    const response = await SubjectServices.getTrash(request, user)
     return c.json(response)
 })
