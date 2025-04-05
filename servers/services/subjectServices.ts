@@ -139,19 +139,80 @@ export class SubjectServices {
                 skip,
                 take: perPage
             }),
-            prismaClient.historySubject.count({ where: {subjectId: request.id} })
+            prismaClient.historySubject.count({ where: { subjectId: request.id } })
         ]);
+
+        const latestHistory = await prismaClient.historySubject.findFirst({
+            where: { subjectId: request.id, schoolId: data.schoolId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+                historyId: true
+            }
+        })
 
         return {
             success: true,
             message: "Berhasil mendapatkan data history!",
             data: {
+                latest: latestHistory,
                 data: dataHistory,
                 total: totalCount,
                 page,
                 perPage,
                 lastPage: Math.ceil(totalCount / perPage)
             },
+        }
+    }
+
+    static async revertHistory(request: { historyId: number, subjectId: number }, data?: any) {
+        const history = await prismaClient.historySubject.findFirst({
+            where: { schoolId: data?.schoolId, historyId: request.historyId, subjectId: request.subjectId }
+        })
+        const latest = await prismaClient.historySubject.findFirst({
+            where: { schoolId: data?.schoolId, subjectId: request.subjectId },
+            orderBy: { createdAt: 'desc' }
+        })
+        const subjectData = await prismaClient.subject.findFirst({
+            where: { schoolId: data?.schoolId, subjectId: request.subjectId }
+        })
+
+        if (history?.historyId === latest?.historyId) {
+            return {
+                success: false,
+                message: "Tidak dapat mengembalikan history karena history ini adalah history terbaru!"
+            }
+        }
+
+        if (history?.subjectName === subjectData?.subjectName || history?.subjectCode === subjectData?.subjectCode) {
+            return {
+                success: false,
+                message: "Tidak dapat mengembalikan data, karena terdapat kesamaan data!"
+            }
+        }
+
+        const reverted = await prismaClient.subject.update({
+            where: { schoolId: data?.schoolId, subjectId: request.subjectId },
+            data: { subjectName: history?.subjectName!, subjectCode: history?.subjectCode, teacherId: history?.teacherId }
+        })
+        if (reverted) {
+            await prismaClient.historySubject.create({
+                data: {
+                    historyOldId: latest?.historyId,
+                    subjectId: history?.subjectId,
+                    subjectName: history?.subjectName,
+                    subjectCode: history?.subjectCode,
+                    teacherId: history?.teacherId,
+                    schoolId: history?.schoolId,
+                    userId: data?.userId,
+                    historyBy: data?.name,
+                    historyStatus: "REVERTED"
+                }
+            })
+
+            return {
+                success: true,
+                message: "Data berhasil dikembalikan!"
+            }
         }
     }
 }

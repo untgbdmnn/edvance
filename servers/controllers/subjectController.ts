@@ -54,3 +54,10 @@ subjectController.post('/get-history', async (c) => {
     const response = await SubjectServices.getHistory(request, user)
     return c.json(response)
 })
+
+subjectController.post('/revert-history', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ historyId: number, subjectId: number }>(c)
+    const response = await SubjectServices.revertHistory(request, user)
+    return c.json(response)
+})

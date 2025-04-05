@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { HistorySubject } from '@prisma/client'
+import { HistoryStatus, HistorySubject } from '@prisma/client'
 import fetchData from '@/lib/fetchData'
 import EmptyData from '@/components/empty-data'
 import moment from 'moment'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { IoMdArrowDropright } from "react-icons/io";
 import Paginate from '@/components/paginate'
 import Spinner from '@/components/spinner'
+import { useAlert } from '@/resources/hooks/useAlert'
 
 interface Props {
     isOpen: boolean
@@ -17,7 +18,9 @@ interface Props {
 }
 
 export default function RiwayatSubject({ isOpen, onOpenChange, reload, ...props }: Props) {
+    const { showAlert } = useAlert()
     const [data, setData] = React.useState<(HistorySubject & { history: any } & { user?: { role: string } })[] | null>([])
+    const [latest, setLatest] = React.useState<{ historyId: number, history: any } | null>(null)
     const [state, setState] = React.useState({
         loading: true,
         currentPage: 0,
@@ -36,6 +39,7 @@ export default function RiwayatSubject({ isOpen, onOpenChange, reload, ...props 
         })
         if (response.success) {
             setData(response.data.data)
+            setLatest(response.data.latest)
             setState(prev => ({
                 ...prev,
                 perPage: response.data.per_page,
@@ -44,19 +48,55 @@ export default function RiwayatSubject({ isOpen, onOpenChange, reload, ...props 
                 loading: false,
             }))
         }
+        setState(prev => ({ ...prev, loading: false }))
     }
 
     React.useEffect(() => {
-        if (isOpen && state.loading) {
+        if (isOpen) {
             loadHistory()
         }
-    }, [isOpen, state.loading])
+    }, [isOpen, state.currentPage])
 
     const handlePageChange = (data: any) => {
         setState(prev => ({
             ...prev,
             currentPage: data.selected, loading: true,
         }))
+    }
+
+    const handleRevert = async (historyId: number, subjectId: number | null) => {
+        const confirmed = await showAlert({
+            title: "Peringatan!",
+            message: `Data ini akan dikembalikan ke data sebelumnya, lanjutkan bila anda yakin?`,
+            typealert: "warning",
+            showButton: true,
+            confirmText: "Lanjutkan",
+            closeText: "Batal"
+        })
+        if (confirmed) {
+            const response = await fetchData.POST('subject/revert-history', {
+                historyId: historyId, subjectId: subjectId
+            })
+            if (response.success) {
+                showAlert({
+                    title: "Berhasil!",
+                    message: response.message,
+                    typealert: "success",
+                    autoClose: true,
+                    duration: 1000
+                })
+                onOpenChange(false)
+                reload()
+            } else {
+                showAlert({
+                    title: "Gagal!",
+                    message: response.message,
+                    typealert: "error",
+                    autoClose: true,
+                    duration: 1200
+                })
+            }
+        }
     }
 
     return (
@@ -94,8 +134,11 @@ export default function RiwayatSubject({ isOpen, onOpenChange, reload, ...props 
                                                         <h1 className='text-base font-bold'>{item.historyBy} | {item.user?.role || 'Unknown Role'}</h1>
                                                         <span className='text-xs'>{moment(item.createdAt).format('LLL')}</span>
                                                     </div>
-                                                    <div className='mt-1'>
+                                                    <div className='mt-1 flex items-center gap-1.5'>
                                                         <Badge variant="outline" className='cursor-pointer'>{item.historyStatus}</Badge>
+                                                        {(latest?.historyId !== item.historyId) && (item.historyStatus !== "REVERTED") && (
+                                                            <Badge variant="outline" className='cursor-pointer uppercase hover:bg-accent duration-150 transition-colors select-none' onClick={() => handleRevert(item.historyId, item.subjectId)}>revert</Badge>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
