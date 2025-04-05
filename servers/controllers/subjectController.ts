@@ -47,3 +47,10 @@ subjectController.post('/get-detail', async (c) => {
         })
     }
 })
+
+subjectController.post('/get-history', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ id: number, page?: number, paginate?: number }>(c)
+    const response = await SubjectServices.getHistory(request, user)
+    return c.json(response)
+})

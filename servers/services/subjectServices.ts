@@ -120,4 +120,38 @@ export class SubjectServices {
             message: 'Subject updated successfully'
         };
     }
+
+    static async getHistory(request: { id: number, page?: number, paginate?: number }, data?: any) {
+        const page = request.page || 1;
+        const perPage = request.paginate || 2;
+        const skip = (page - 1) * perPage;
+
+        const [dataHistory, totalCount] = await Promise.all([
+            prismaClient.historySubject.findMany({
+                where: { subjectId: request.id },
+                include: {
+                    history: true,
+                    user: {
+                        select: { role: true, name: true }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: perPage
+            }),
+            prismaClient.historySubject.count({ where: {subjectId: request.id} })
+        ]);
+
+        return {
+            success: true,
+            message: "Berhasil mendapatkan data history!",
+            data: {
+                data: dataHistory,
+                total: totalCount,
+                page,
+                perPage,
+                lastPage: Math.ceil(totalCount / perPage)
+            },
+        }
+    }
 }
