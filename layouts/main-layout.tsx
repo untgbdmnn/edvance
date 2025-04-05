@@ -15,6 +15,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar"
+import moment from "moment"
 
 interface MainLayoutProps {
     children: React.ReactNode
@@ -25,6 +26,7 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children, showBreadcrumb, pageTitle, parentPageTitle, parentPageUrl }: MainLayoutProps) {
+    moment.locale('id')
     return (
         <SidebarProvider>
             <AppSidebar />

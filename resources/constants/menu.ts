@@ -14,11 +14,11 @@ export const MenuMain = [
         items: [
             {
                 title: "Jam Belajar",
-                url: "/learning-time",
+                url: "/learning-hours",
             },
             {
                 title: "Kelas",
-                url: "/class",
+                url: "/grade-list",
             },
             {
                 title: "Mata Pelajaran",
