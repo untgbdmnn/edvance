@@ -2,6 +2,7 @@ import { authController } from '@/servers/controllers/authController'
 import { gradeController } from '@/servers/controllers/gradeController'
 import { schoolController } from '@/servers/controllers/schoolController'
 import { studentController } from '@/servers/controllers/studentController'
+import { subjectController } from '@/servers/controllers/subjectController'
 import { AuthServices } from '@/servers/services/authServices'
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
@@ -38,6 +39,7 @@ app.use('*', async (c, next) => {
 app.route('/sekolah', schoolController)
 app.route('/student', studentController)
 app.route('/grade', gradeController)
+app.route('/subject', subjectController)
 
 export const GET = handle(app)
 export const PATCH = handle(app)

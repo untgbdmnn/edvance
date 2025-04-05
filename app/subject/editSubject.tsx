@@ -1,6 +1,7 @@
 "use client"
 
 import { SelectSearch } from '@/components/selectSearch'
+import Spinner from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -14,6 +15,7 @@ interface Props {
     isOpen: boolean
     onOpenChange: (open: boolean) => void
     reload: () => void
+    subjectId: number
 }
 
 interface FormState {
@@ -22,10 +24,11 @@ interface FormState {
     teacherId: string
 }
 
-export default function AddSubject({ isOpen, onOpenChange, reload, ...props }: Props) {
+export default function EditSubject({ isOpen, onOpenChange, reload, ...props }: Props) {
     const { showAlert } = useAlert()
     const [state, setState] = React.useState({
         loading: false,
+        mounting: false,
     })
     const [form, setForm] = React.useState<FormState>({
         subject_name: '',
@@ -41,14 +44,44 @@ export default function AddSubject({ isOpen, onOpenChange, reload, ...props }: P
         }))
     }
 
+    async function getDetail() {
+        setState({ ...state, mounting: true })
+        const response = await fetchData.POST('subject/get-detail', { subjectId: props.subjectId })
+        if (response.success) {
+            setForm(prev => ({
+                ...prev,
+                subject_name: response.data.subjectName,
+                subject_code: response.data.subjectCode,
+                teacherId: '',
+            }))
+            setState(prev => ({ ...prev, mounting: false }))
+        } else {
+            showAlert({
+                title: "Gagal!",
+                message: response.message,
+                typealert: "error",
+                autoClose: true,
+                duration: 1000
+            })
+            onOpenChange(false)
+        }
+    }
+
+    React.useEffect(() => {
+        if (isOpen) {
+            getDetail()
+        }
+    }, [isOpen])
+
     const handleSubmit = async () => {
         setState(prev => ({ ...prev, loading: true }))
         const reqBody = {
             nama_subject: form.subject_name,
             kode_subject: form.subject_code,
             teacher_id: form.teacherId,
+            id: props.subjectId
         }
-        const response = await fetchData.POST('subject/add-subject', reqBody)
+        const response = await fetchData.POST('subject/edit-subject', reqBody)
         if (response.success) {
             showAlert({
                 title: "Berhasil!",
@@ -81,38 +114,43 @@ export default function AddSubject({ isOpen, onOpenChange, reload, ...props }: P
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className='w-[1000px]'>
                 <DialogHeader>
-                    <DialogTitle>Tambah Mata Pelajaran</DialogTitle>
+                    <DialogTitle>Edit Mata Pelajaran</DialogTitle>
                 </DialogHeader>
                 <DialogBody>
-                    <div className='grid grid-cols-1 gap-4'>
+                    {state.mounting ? (
+                        <Spinner />
+                    ) : (
+                        <div className='grid grid-cols-1 gap-4'>
 
-                        <div className='form-group'>
-                            <Label htmlFor='subject_name'>Nama Mata Pelajaran</Label>
-                            <Input id='subject_name' name='subject_name' onChange={handleChange} value={form.subject_name} placeholder='Ketikan nama mata pelajaran disini' />
-                        </div>
+                            <div className='form-group'>
+                                <Label htmlFor='subject_name'>Nama Mata Pelajaran</Label>
+                                <Input id='subject_name' name='subject_name' onChange={handleChange} value={form.subject_name} placeholder='Ketikan nama mata pelajaran disini' />
+                            </div>
 
-                        <div className='form-group'>
-                            <Label htmlFor='subject_code'>Kode Mata Pelajaran</Label>
-                            <Input id='subject_code' name='subject_code' onChange={handleChange} value={form.subject_code} placeholder='Ketikan kode mata pelajaran disini' />
-                        </div>
+                            <div className='form-group'>
+                                <Label htmlFor='subject_code'>Kode Mata Pelajaran</Label>
+                                <Input id='subject_code' name='subject_code' onChange={handleChange} value={form.subject_code} placeholder='Ketikan kode mata pelajaran disini' />
+                            </div>
 
-                        <div className='form-group'>
-                            <Label>Guru Pengampu</Label>
-                            <SelectSearch
-                                options={[]}
-                                contentClassname='w-full'
-                                valueKey="teacherId"
-                                labelKey="teacherName"
-                                placeholder="Pilih guru pengampu"
-                                value={form.teacherId ?? undefined}
-                                displayLimit={2}
-                                onSelect={(value) => {
-                                    setForm(prev => ({ ...prev, teacherId: String(value) }))
-                                }}
-                            />
+                            <div className='form-group'>
+                                <Label>Guru Pengampu</Label>
+                                <SelectSearch
+                                    options={[]}
+                                    contentClassname='w-full'
+                                    valueKey="teacherId"
+                                    labelKey="teacherName"
+                                    placeholder="Pilih guru pengampu"
+                                    value={form.teacherId ?? undefined}
+                                    displayLimit={2}
+                                    onSelect={(value) => {
+                                        setForm(prev => ({ ...prev, teacherId: String(value) }))
+                                    }}
+                                />
+                            </div>
                         </div>
-                    </div>
-                </DialogBody>
+                    )
+                    }
+                </DialogBody >
                 <DialogFooter>
                     <Button variant="outline" className='cursor-pointer' onClick={() => {
                         onOpenChange(false)
@@ -126,7 +164,7 @@ export default function AddSubject({ isOpen, onOpenChange, reload, ...props }: P
                     }}>Batal</Button>
                     <Button className='cursor-pointer' onClick={handleSubmit} disabled={state.loading}><SaveIcon />Simpan</Button>
                 </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     )
 }

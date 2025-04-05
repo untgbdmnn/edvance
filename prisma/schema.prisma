@@ -108,6 +108,8 @@ model HistorySubject {
   userId         Int?
   user           User?            @relation(fields: [userId], references: [userId])
   subjectId      Int?
+  teacherId      Int?
+  teacher        Teacher?         @relation(fields: [teacherId], references: [teacherId])
   subject        Subject?         @relation(fields: [subjectId], references: [subjectId])
   schoolId       Int?
   school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
@@ -116,18 +118,19 @@ model HistorySubject {
 }
 
 model Teacher {
-  teacherId Int        @id @default(autoincrement())
-  name      String
-  email     String     @unique
-  password  String
-  phone     String?
-  address   String?
-  schoolId  Int?
-  school    Sekolah?   @relation(fields: [schoolId], references: [schoolid])
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  Subject   Subject[]
-  Schedule  Schedule[]
+  teacherId      Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  password       String
+  phone          String?
+  address        String?
+  schoolId       Int?
+  school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  Subject        Subject[]
+  Schedule       Schedule[]
+  HistorySubject HistorySubject[]
 }
 
 model Schedule {
