@@ -65,3 +65,10 @@ teacherController.post('/delete-permanent', async (c) => {
     const response = await teacherServices.DeletePermanent(request, user)
     return c.json(response)
 })
+
+teacherController.post('/get-history', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ teacherId: number, page?: number, paginate?: number }>(c)
+    const response = await teacherServices.GetHistory(request, user)
+    return c.json(response)
+})

@@ -19,6 +19,7 @@ import fetchData from '@/lib/fetchData'
 import EditTeacher from './editTeacher'
 import { useAlert } from '@/resources/hooks/useAlert'
 import TrashTeacher from './trashGuru'
+import RiwayatGuru from './history'
 
 export default function DaftarGuru() {
     const { showAlert } = useAlert()
@@ -132,6 +133,7 @@ export default function DaftarGuru() {
             <AddTeacher isOpen={state.modalAdd} onOpenChange={handleCloseModal} reload={resetState} />
             <TrashTeacher isOpen={state.modalTrash} onOpenChange={handleCloseModal} reload={resetState} />
             <EditTeacher isOpen={state.modalEdit} onOpenChange={handleCloseModal} reload={resetState} teacherId={state.teacherId} />
+            <RiwayatGuru isOpen={state.modalHistory} onOpenChange={handleCloseModal} reload={resetState} teacherId={state.teacherId} />
 
             <div className="container">
                 <div className='p-3 w-full'>

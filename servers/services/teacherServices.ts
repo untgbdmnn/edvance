@@ -243,12 +243,51 @@ export class teacherServices {
 
     static async DeletePermanent(request: { teacherId: number[] }, data?: any) {
         const del = await prismaClient.teacher.deleteMany({
-            where: {schoolId: data.schoolId, teacherId: { in: request.teacherId }}
+            where: { schoolId: data.schoolId, teacherId: { in: request.teacherId } }
         })
         if (del) {
             return toTeacherResponse(true, "Berhasil menghapus permanen dana!")
         } else {
             return toTeacherResponse(false, "Gagal menghapus permanen dana!")
         }
+    }
+
+    static async GetHistory(request: { teacherId: number, page?: number, paginate?: number }, data?: any) {
+        const page = request.page || 1;
+        const perPage = request.paginate || 2;
+        const skip = (page - 1) * perPage;
+
+        const [dataHistory, totalCount] = await Promise.all([
+            prismaClient.historyTeacher.findMany({
+                where: { teacherId: request.teacherId },
+                include: {
+                    history: true,
+                    user: {
+                        select: { role: true, name: true }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: perPage
+            }),
+            prismaClient.historyTeacher.count({ where: { teacherId: request.teacherId } })
+        ]);
+
+        const latestHistory = await prismaClient.historyTeacher.findFirst({
+            where: { teacherId: request.teacherId, schoolId: data.schoolId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+                historyId: true
+            }
+        })
+
+        return toTeacherResponse(true, "Berhasil mendapatkan data history!", {
+            latest: latestHistory,
+                data: dataHistory,
+                total: totalCount,
+                page,
+                perPage,
+                lastPage: Math.ceil(totalCount / perPage)
+        })
     }
 }
