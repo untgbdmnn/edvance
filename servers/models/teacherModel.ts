@@ -4,6 +4,13 @@ export interface RequestAddTeacher {
     phone: number
     address: string
 }
+export interface RequestEditTeacher {
+    teacher_name: string
+    email: string
+    phone: number
+    address: string
+    teacherId: number
+}
 
 
 type BasicResponse = {

@@ -1,5 +1,5 @@
 import { hashPassword } from "@/resources/helpers/hasPassword";
-import { RequestAddTeacher, toTeacherResponse } from "../models/teacherModel";
+import { RequestAddTeacher, RequestEditTeacher, toTeacherResponse } from "../models/teacherModel";
 import { prismaClient } from "@/lib/db";
 
 export class teacherServices {
@@ -47,6 +47,49 @@ export class teacherServices {
                 return toTeacherResponse(true, "Berhasil menambahkan guru!")
             } else {
                 return toTeacherResponse(false, "Gagal menambahkan guru!");
+            }
+        }
+    }
+
+    static async EditTeacher(request: RequestEditTeacher, data?: any) {
+        if (request.teacher_name == '' || request.email == '') {
+            return toTeacherResponse(false, 'Please fill in all fields');
+        }
+
+        const updated = await prismaClient.teacher.update({
+            where: { schoolId: data.schoolId, teacherId: request.teacherId },
+            data: {
+                schoolId: data.schoolId,
+                name: request.teacher_name,
+                email: request.email,
+                address: request.address,
+                phone: request.phone.toString(),
+                status: "ACTIVE"
+            }
+        })
+        if (updated) {
+            const latestHistory = await prismaClient.historyTeacher.findFirst({
+                where: { schoolId: data.schoolId, teacherId: request.teacherId },
+                orderBy: { createdAt: "desc" }
+            })
+            const addHistory = await prismaClient.historyTeacher.create({
+                data: {
+                    historyOldId: latestHistory?.historyId,
+                    name: request.teacher_name,
+                    email: request.email,
+                    phone: request.phone.toString(),
+                    address: request.address,
+                    schoolId: data.schoolId,
+                    teacherId: updated.teacherId,
+                    historyStatus: "UPDATED",
+                    historyBy: data.name,
+                    userId: data.userId
+                }
+            })
+            if (addHistory) {
+                return toTeacherResponse(true, "Berhasil mengubah data guru!")
+            } else {
+                return toTeacherResponse(false, "Gagal mengubah data guru!");
             }
         }
     }

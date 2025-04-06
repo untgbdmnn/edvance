@@ -16,6 +16,7 @@ import { PlusCircleIcon, RefreshCcwDot, SearchIcon } from 'lucide-react'
 import * as React from 'react'
 import AddTeacher from './addTeacher'
 import fetchData from '@/lib/fetchData'
+import EditTeacher from './editTeacher'
 
 export default function DaftarGuru() {
     const [data, setData] = React.useState<Teacher[]>([])
@@ -95,6 +96,7 @@ export default function DaftarGuru() {
             <AppHeader title='Daftar Guru' />
 
             <AddTeacher isOpen={state.modalAdd} onOpenChange={handleCloseModal} reload={resetState} />
+            <EditTeacher isOpen={state.modalEdit} onOpenChange={handleCloseModal} reload={resetState} teacherId={state.teacherId} />
 
             <div className="container">
                 <div className='p-3 w-full'>

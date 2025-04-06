@@ -1,3 +1,4 @@
+import Spinner from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,7 @@ interface Props {
     isOpen: boolean
     onOpenChange: (open: boolean) => void
     reload: () => void
+    teacherId?: number
 }
 
 interface FormState {
@@ -18,18 +20,21 @@ interface FormState {
     email: string
     phone: number
     address: string
+    teacherId?: number
 }
 
-export default function AddTeacher({ isOpen, onOpenChange, reload, ...props }: Props) {
+export default function EditTeacher({ isOpen, onOpenChange, reload, ...props }: Props) {
     const { showAlert } = useAlert()
     const [state, setState] = React.useState({
         loading: false,
+        mounting: false,
     })
     const [form, setForm] = React.useState<FormState>({
         teacher_name: '',
         email: '',
         phone: 0,
-        address: ''
+        address: '',
+        teacherId: 0,
     })
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,9 +45,31 @@ export default function AddTeacher({ isOpen, onOpenChange, reload, ...props }: P
         }))
     }
 
+    const dataDetail = async () => {
+        setState({ ...state, mounting: true })
+        const response = await fetchData.POST('teacher/detail', { teacherId: props.teacherId })
+        if (response.success) {
+            setForm(prev => ({
+                ...prev,
+                teacher_name: response.data.name,
+                email: response.data.email,
+                phone: response.data.phone,
+                address: response.data.address,
+                teacherId: response.data.teacherId
+            }))
+        }
+        setState({ ...state, mounting: false })
+    }
+
+    React.useEffect(() => {
+        if (isOpen) {
+            dataDetail()
+        }
+    }, [isOpen])
+
     const handleSubmit = async () => {
         setState({ ...state, loading: true })
-        const response = await fetchData.POST('teacher/add', form)
+        const response = await fetchData.PATCH('teacher/edit', form)
         if (response.success) {
             showAlert({
                 title: "Berhasil!",
@@ -71,36 +98,44 @@ export default function AddTeacher({ isOpen, onOpenChange, reload, ...props }: P
         }
         setState({ ...state, loading: false })
     }
+
+    console.log(form)
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className='w-[1000px]'>
                 <DialogHeader>
-                    <DialogTitle>Tambah Guru</DialogTitle>
+                    <DialogTitle>Edit Guru</DialogTitle>
                 </DialogHeader>
                 <DialogBody>
-                    <div className='grid grid-cols-3 gap-4'>
-
-                        <div className='form-group'>
-                            <Label htmlFor='teacher_name'>Nama Guru</Label>
-                            <Input id='teacher_name' name='teacher_name' onChange={handleChange} value={form.teacher_name} placeholder='Ketikan nama guru disini' />
+                    {state.mounting ? (
+                        <div>
+                            <Spinner />
                         </div>
+                    ) : (
+                        <div className='grid grid-cols-3 gap-4'>
 
-                        <div className='form-group'>
-                            <Label htmlFor='email'>Email Guru</Label>
-                            <Input id='email' name='email' type='email' onChange={handleChange} value={form.email} placeholder='Ketikan email guru' />
+                            <div className='form-group'>
+                                <Label htmlFor='teacher_name'>Nama Guru</Label>
+                                <Input id='teacher_name' name='teacher_name' onChange={handleChange} value={form.teacher_name} placeholder='Ketikan nama guru disini' />
+                            </div>
+
+                            <div className='form-group'>
+                                <Label htmlFor='email'>Email Guru</Label>
+                                <Input id='email' name='email' type='email' onChange={handleChange} value={form.email} placeholder='Ketikan email guru' />
+                            </div>
+
+                            <div className='form-group'>
+                                <Label htmlFor='phone'>Nomor Guru</Label>
+                                <Input id='phone' name='phone' type="tel" onChange={handleChange} value={form.phone} placeholder='Ketikan kode mata pelajaran disini' />
+                            </div>
+
+                            <div className='form-group col-span-3'>
+                                <Label htmlFor='address'>Alamat Guru</Label>
+                                <Input id='address' name='address' type="text" onChange={handleChange} value={form.address} placeholder='Ketikan alamat guru' />
+                            </div>
+
                         </div>
-
-                        <div className='form-group'>
-                            <Label htmlFor='phone'>Nomor Guru</Label>
-                            <Input id='phone' name='phone' type="tel" onChange={handleChange} value={form.phone} placeholder='Ketikan kode mata pelajaran disini' />
-                        </div>
-
-                        <div className='form-group col-span-3'>
-                            <Label htmlFor='address'>Alamat Guru</Label>
-                            <Input id='address' name='address' type="text" onChange={handleChange} value={form.address} placeholder='Ketikan alamat guru' />
-                        </div>
-
-                    </div>
+                    )}
                 </DialogBody>
                 <DialogFooter>
                     <Button variant="outline" className='cursor-pointer' onClick={() => {
