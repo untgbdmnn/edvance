@@ -50,4 +50,37 @@ export class teacherServices {
             }
         }
     }
+
+    static async GetAllData(request: { filter_nama?: string, page?: number, paginate?: number }, data?: any) {
+        const page = request.page || 1;
+        const perPage = request.paginate || 2;
+        const skip = (page - 1) * perPage;
+
+        let whereClause: any = { schoolId: data?.schoolId, status: "ACTIVE" };
+
+        if (request.filter_nama && request.filter_nama.trim() !== '') {
+            whereClause.name = {
+                contains: request.filter_nama.trim(),
+                mode: 'insensitive'
+            };
+        }
+
+        const [teacher, totalCount] = await Promise.all([
+            prismaClient.teacher.findMany({
+                where: whereClause,
+                orderBy: { name: 'asc' },
+                skip,
+                take: perPage
+            }),
+            prismaClient.teacher.count({ where: whereClause })
+        ]);
+
+        return toTeacherResponse(true, "Berhasil mendapatkan data guru!", {
+            data: teacher,
+            total: totalCount,
+            page,
+            perPage,
+            lastPage: Math.ceil(totalCount / perPage)
+        })
+    }
 }

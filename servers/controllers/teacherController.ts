@@ -12,3 +12,10 @@ teacherController.post('/add', async (c) => {
     const response = await teacherServices.AddTeacher(request, user)
     return c.json(response)
 })
+
+teacherController.post('/list', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ filter_nama?: string, page?: number, paginate?: number }>(c)
+    const response = await teacherServices.GetAllData(request, user)
+    return c.json(response)
+})

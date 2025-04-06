@@ -25,7 +25,7 @@ export default function DaftarGuru() {
         modalEdit: false,
         modalHistory: false,
         modalTrash: false,
-        loading: false,
+        loading: true,
         currentPage: 0,
         perPage: 0,
         totalData: 0,
@@ -64,15 +64,31 @@ export default function DaftarGuru() {
         }
     }
 
-    const resetState = () => {
+    React.useEffect(() => {
+        if (state.loading) {
+            loadData()
+        }
+    }, [state.loading, state.currentPage])
 
+    const resetState = () => {
+        setState(prev => ({
+            ...prev,
+            loading: true,
+            currentPage: 0,
+            search: '',
+        }))
+        setData([])
     }
 
     const handleDelete = async (id: number) => {
 
     }
 
-    const handlePageChange = (page: number) => { }
+    const handlePageChange = (page: any) => {
+        setState(prev => ({
+            ...prev, loading: true, currentPage: page.selected
+        }))
+    }
     return (
         <MainLayout showBreadcrumb pageTitle='Daftar Guru' parentPageTitle='Guru'>
             <SetTitle pageTitle='Daftar Guru' />
@@ -88,7 +104,7 @@ export default function DaftarGuru() {
                             <div className='relative flex w-full items-center justify-start'>
                                 <Input className='pl-9 w-full' placeholder='Cari Nama Guru...' onChange={(e) => setState(prev => ({ ...prev, search: e.target.value }))} value={state.search} onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
-                                        // loadData()
+                                        loadData()
                                     }
                                 }} />
                                 <SearchIcon className='absolute left-1.5' />
