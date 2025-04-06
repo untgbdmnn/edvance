@@ -126,4 +126,129 @@ export class teacherServices {
             lastPage: Math.ceil(totalCount / perPage)
         })
     }
+
+    static async getTrash(request: { page?: number, paginate?: number }, data?: any) {
+        const page = request.page || 1;
+        const perPage = request.paginate || 2;
+        const skip = (page - 1) * perPage;
+
+        const [dataTrash, totalCount] = await Promise.all([
+            prismaClient.teacher.findMany({
+                where: { schoolId: data?.schoolId, status: "DELETED" },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: perPage
+            }),
+            prismaClient.teacher.count({ where: { status: "DELETED" } })
+        ]);
+
+        return toTeacherResponse(true, "Berhasil mendapatkan data history!", {
+            data: dataTrash,
+            total: totalCount,
+            page,
+            perPage,
+            lastPage: Math.ceil(totalCount / perPage)
+        })
+    }
+
+    static async DeletedData(request: { teacherId: number }, data?: any) {
+        const dataDel = await prismaClient.teacher.update({
+            where: { schoolId: data?.schoolId, teacherId: request.teacherId },
+            data: { status: "DELETED" }
+        })
+        if (dataDel) {
+            const latestHistory = await prismaClient.historyTeacher.findFirst({
+                where: { schoolId: data.schoolId, teacherId: request.teacherId },
+                orderBy: { createdAt: "desc" }
+            })
+            const addHistory = await prismaClient.historyTeacher.create({
+                data: {
+                    historyOldId: latestHistory?.historyId,
+                    name: dataDel.name,
+                    email: dataDel.email,
+                    phone: dataDel.phone,
+                    address: dataDel.address,
+                    schoolId: data.schoolId,
+                    teacherId: request.teacherId,
+                    historyStatus: "DELETED",
+                    historyBy: data.name,
+                    userId: data.userId
+                }
+            })
+            if (addHistory) {
+                return toTeacherResponse(true, "Berhasil menghapus data guru!")
+            } else {
+                return toTeacherResponse(false, "Gagal menghapus data guru!")
+            }
+        }
+    }
+
+    static async PulihkanData(request: { teacherId: number[] }, data?: any) {
+        const updateResult = await prismaClient.teacher.updateMany({
+            where: {
+                teacherId: { in: request.teacherId },
+                schoolId: data.schoolId // Tambahkan schoolId untuk keamanan
+            },
+            data: { status: "ACTIVE" }
+        });
+
+        if (updateResult.count === 0) {
+            return toTeacherResponse(false, "Tidak ada data yang dipulihkan");
+        }
+
+        const updatedTeachers = await prismaClient.teacher.findMany({
+            where: {
+                teacherId: { in: request.teacherId },
+                schoolId: data.schoolId
+            }
+        });
+
+        const historyResults = await Promise.all(
+            updatedTeachers.map(async (teacher) => {
+                const latestHistory = await prismaClient.historyTeacher.findFirst({
+                    where: {
+                        schoolId: data.schoolId,
+                        teacherId: teacher.teacherId
+                    },
+                    orderBy: { createdAt: "desc" }
+                });
+
+                return await prismaClient.historyTeacher.create({
+                    data: {
+                        historyOldId: latestHistory?.historyId,
+                        name: teacher.name,
+                        email: teacher.email,
+                        phone: teacher.phone,
+                        address: teacher.address,
+                        schoolId: data.schoolId,
+                        teacherId: teacher.teacherId,
+                        historyStatus: "RESTORED",
+                        historyBy: data.name,
+                        userId: data.userId
+                    }
+                });
+            })
+        );
+
+        if (historyResults.length > 0) {
+            return toTeacherResponse(
+                true,
+                `Berhasil memulihkan ${updateResult.count} data guru`,
+                { restoredCount: updateResult.count }
+            );
+        } else {
+            return toTeacherResponse(false, "Gagal membuat history pemulihan");
+        }
+    }
+
+    static async DeletePermanent(request: { teacherId: number[] }, data?: any) {
+        const del = await prismaClient.teacher.deleteMany({
+            where: {schoolId: data.schoolId, teacherId: { in: request.teacherId }}
+        })
+        if (del) {
+            return toTeacherResponse(true, "Berhasil menghapus permanen dana!")
+        } else {
+            return toTeacherResponse(false, "Gagal menghapus permanen dana!")
+        }
+    }
 }

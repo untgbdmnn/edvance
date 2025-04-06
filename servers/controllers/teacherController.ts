@@ -28,6 +28,13 @@ teacherController.post('/list', async (c) => {
     return c.json(response)
 })
 
+teacherController.post('/get-trash', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ page?: number, paginate?: number }>(c)
+    const response = await teacherServices.getTrash(request, user)
+    return c.json(response)
+})
+
 teacherController.post('/detail', async (c) => {
     const user = c.get('user');
     const request = await parseRequest<{ teacherId: number }>(c)
@@ -41,10 +48,20 @@ teacherController.post('/detail', async (c) => {
 teacherController.post('/deleted', async (c) => {
     const user = c.get('user');
     const request = await parseRequest<{ teacherId: number }>(c)
-    const data = await prismaClient.teacher.update({
-        where: { schoolId: user.schoolId, teacherId: request.teacherId },
-        data: { status: "DELETED" }
-    })
-    const response = toTeacherResponse(true, "Berhasil menghapus data!")
+    const response = await teacherServices.DeletedData(request, user)
+    return c.json(response)
+})
+
+teacherController.post('/pulihkan', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ teacherId: number[] }>(c)
+    const response = await teacherServices.PulihkanData(request, user)
+    return c.json(response)
+})
+
+teacherController.post('/delete-permanent', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ teacherId: number[] }>(c)
+    const response = await teacherServices.DeletePermanent(request, user)
     return c.json(response)
 })

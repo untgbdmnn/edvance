@@ -17,8 +17,11 @@ import * as React from 'react'
 import AddTeacher from './addTeacher'
 import fetchData from '@/lib/fetchData'
 import EditTeacher from './editTeacher'
+import { useAlert } from '@/resources/hooks/useAlert'
+import TrashTeacher from './trashGuru'
 
 export default function DaftarGuru() {
+    const { showAlert } = useAlert()
     const [data, setData] = React.useState<Teacher[]>([])
     const [state, setState] = React.useState({
         search: '',
@@ -81,21 +84,53 @@ export default function DaftarGuru() {
         setData([])
     }
 
-    const handleDelete = async (id: number) => {
-
-    }
-
     const handlePageChange = (page: any) => {
         setState(prev => ({
             ...prev, loading: true, currentPage: page.selected
         }))
     }
+
+    const handleDelete = async (id: number) => {
+        const confirmed = await showAlert({
+            title: "Peringatan!",
+            message: `Data ini akan dihapus, apakah anda yakin?`,
+            typealert: "warning",
+            showButton: true,
+            confirmText: "Hapus",
+            closeText: "Batal"
+        })
+        if (confirmed) {
+            const response = await fetchData.POST('teacher/deleted', {
+                teacherId: id
+            })
+            if (response.success) {
+                showAlert({
+                    title: "Berhasil!",
+                    message: response.message,
+                    typealert: "success",
+                    autoClose: true,
+                    duration: 1000
+                })
+                resetState()
+            } else {
+                showAlert({
+                    title: "Gagal!",
+                    message: response.message,
+                    typealert: "error",
+                    autoClose: true,
+                    duration: 1200
+                })
+            }
+        }
+    }
+
     return (
         <MainLayout showBreadcrumb pageTitle='Daftar Guru' parentPageTitle='Guru'>
             <SetTitle pageTitle='Daftar Guru' />
             <AppHeader title='Daftar Guru' />
 
             <AddTeacher isOpen={state.modalAdd} onOpenChange={handleCloseModal} reload={resetState} />
+            <TrashTeacher isOpen={state.modalTrash} onOpenChange={handleCloseModal} reload={resetState} />
             <EditTeacher isOpen={state.modalEdit} onOpenChange={handleCloseModal} reload={resetState} teacherId={state.teacherId} />
 
             <div className="container">

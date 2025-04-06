@@ -99,7 +99,6 @@ export default function EditTeacher({ isOpen, onOpenChange, reload, ...props }: 
         setState({ ...state, loading: false })
     }
 
-    console.log(form)
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className='w-[1000px]'>
