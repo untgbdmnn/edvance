@@ -1,6 +1,6 @@
 import { PiStudentDuotone } from "react-icons/pi";
 import { MdOutlineDataset, MdOutlineDashboard, MdOutlineSettingsInputComponent } from "react-icons/md";
-
+import { FaChalkboardTeacher } from "react-icons/fa";
 
 export const MenuMain = [
     {
@@ -39,6 +39,11 @@ export const MenuMain = [
                 url: "/students-list",
             },
         ],
+    },
+    {
+        title: "Guru",
+        url: "/teachers",
+        icon: FaChalkboardTeacher,
     },
     {
         title: "Settings",

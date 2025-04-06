@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import { CreateNew } from "../models/sekolahModel";
 import { SchoolServices } from "../services/schoolServices";
 import { User } from "@prisma/client";
-import { prismaClient } from "@/lib/db";
 
 export const schoolController = new Hono<{ Variables: { user: User } }>();
 

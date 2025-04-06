@@ -3,6 +3,7 @@ import { gradeController } from '@/servers/controllers/gradeController'
 import { schoolController } from '@/servers/controllers/schoolController'
 import { studentController } from '@/servers/controllers/studentController'
 import { subjectController } from '@/servers/controllers/subjectController'
+import { teacherController } from '@/servers/controllers/teacherController'
 import { AuthServices } from '@/servers/services/authServices'
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
@@ -40,6 +41,7 @@ app.route('/sekolah', schoolController)
 app.route('/student', studentController)
 app.route('/grade', gradeController)
 app.route('/subject', subjectController)
+app.route('/teacher', teacherController)
 
 export const GET = handle(app)
 export const PATCH = handle(app)

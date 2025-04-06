@@ -22,6 +22,7 @@ model User {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   HistorySubject HistorySubject[]
+  HistoryTeacher HistoryTeacher[]
 }
 
 model Sekolah {
@@ -46,6 +47,7 @@ model Sekolah {
   Teacher        Teacher[]
   Schedule       Schedule[]
   HistorySubject HistorySubject[]
+  HistoryTeacher HistoryTeacher[]
 }
 
 model Student {
@@ -125,6 +127,7 @@ model Teacher {
   password       String
   phone          String?
   address        String?
+  status         Status           @default(ACTIVE)
   schoolId       Int?
   school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
   createdAt      DateTime         @default(now())
@@ -132,6 +135,29 @@ model Teacher {
   Subject        Subject[]
   Schedule       Schedule[]
   HistorySubject HistorySubject[]
+  HistoryTeacher HistoryTeacher[]
+}
+
+model HistoryTeacher {
+  historyId      Int              @id @default(autoincrement())
+  name           String?
+  email          String?          @unique
+  password       String?
+  phone          String?
+  address        String?
+  schoolId       Int?
+  school         Sekolah?         @relation(fields: [schoolId], references: [schoolid])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  teacherId      Int?
+  teacher        Teacher?         @relation(fields: [teacherId], references: [teacherId])
+  historyStatus  HistoryStatus?   @default(CREATED)
+  historyBy      String?
+  userId         Int?
+  user           User?            @relation(fields: [userId], references: [userId])
+  historyOldId   Int?
+  history        HistoryTeacher?  @relation("SelfRelation", fields: [historyOldId], references: [historyId])
+  HistoryTeacher HistoryTeacher[] @relation("SelfRelation")
 }
 
 model Schedule {
