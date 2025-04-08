@@ -64,7 +64,7 @@ export default function RiwayatGuru({ isOpen, onOpenChange, reload, ...props }: 
         }))
     }
 
-    const handleRevert = async (historyId: number, subjectId: number | null) => {
+    const handleRevert = async (historyId: number, teacherId: number | null) => {
         const confirmed = await showAlert({
             title: "Peringatan!",
             message: `Data ini akan dikembalikan ke data sebelumnya, lanjutkan bila anda yakin?`,
@@ -74,8 +74,8 @@ export default function RiwayatGuru({ isOpen, onOpenChange, reload, ...props }: 
             closeText: "Batal"
         })
         if (confirmed) {
-            const response = await fetchData.POST('subject/revert-history', {
-                historyId: historyId, subjectId: subjectId
+            const response = await fetchData.POST('teacher/revert-history', {
+                historyId: historyId, teacherId: teacherId
             })
             if (response.success) {
                 showAlert({

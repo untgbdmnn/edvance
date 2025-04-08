@@ -283,11 +283,15 @@ export class teacherServices {
 
         return toTeacherResponse(true, "Berhasil mendapatkan data history!", {
             latest: latestHistory,
-                data: dataHistory,
-                total: totalCount,
-                page,
-                perPage,
-                lastPage: Math.ceil(totalCount / perPage)
+            data: dataHistory,
+            total: totalCount,
+            page,
+            perPage,
+            lastPage: Math.ceil(totalCount / perPage)
         })
+    }
+
+    static async RevertTeacher(request: { historyId: number, teacherId: number }, data?: any) {
+        return toTeacherResponse(true, "Berhasil revert data!")
     }
 }

@@ -72,3 +72,10 @@ teacherController.post('/get-history', async (c) => {
     const response = await teacherServices.GetHistory(request, user)
     return c.json(response)
 })
+
+teacherController.post('/revert-history', async (c) => {
+    const user = c.get('user');
+    const request = await parseRequest<{ historyId: number, teacherId: number }>(c)
+    const response = await teacherServices.RevertTeacher(request, user)
+    return c.json(response)
+})
